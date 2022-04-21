@@ -4,12 +4,11 @@ const response = require("./../response");
 const db = require("./../settings/db");
 
 exports.searchFriendById = (req, res) => {
-  const id = req.body.id; //id данного пользователя
-  console.log(id);
+  // const id = req.body.id; //id данного пользователя
   const data = req.body.searchValue.toLowerCase(); //ищем пользователей в нижнем регистре
-  const user = "SELECT `id` * FROM `users` WHERE `id` = '" + req.body.id + "'";
+  const user = "SELECT `id` * FROM `users` WHERE `id` = '" + req.params.id + "'";
 
-  db.query(user, [id, data], (error, rows, fields) => {
+  db.query(user, data, (error, rows, fields) => {
     if (error) {
       response.status(400, error, res);
     } else {
