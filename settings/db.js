@@ -1,5 +1,5 @@
 const mysql = require("mysql2");
-const config = require("../config");
+const config = require("./../config");
 
 const connection = mysql.createConnection({
   host: config.HOST,
@@ -12,7 +12,7 @@ connection.connect((error) => {
   if (error) {
     return console.log("Ошибка подключения к БД");
   } else {
-    return console.log("Подлючение к БД успешно...");
+    return console.log("Подключение к БД успешно...");
   }
 });
 

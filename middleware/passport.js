@@ -1,7 +1,7 @@
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const db = require("./../settings/db");
-const config = require("./../config");
+const config = require('./../config')
 
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), //мы будем брать токен, который хранится в headers
