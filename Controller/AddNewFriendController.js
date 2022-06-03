@@ -7,78 +7,34 @@ exports.addNewFriend = (req, res) => {
   const friendEmail = req.body.email; //email пользователя, которого добавляю в свой список контактов
   const currentUserId = req.body.id; //мой id 
 
-  // const sql = "SELECT `ID` FROM `users` WHERE `ID` = '" + currentUserId + "'"; //делаю выборку своего id из таблицы users
-  const friend = "SELECT `email`, `firstName`, `lastName`, `phone`, `password` FROM `users` WHERE `email` = '" + friendEmail + "'";
+  //делаем выборку из таблицы users по емейл существующего пользователя
+  const usersTable = "SELECT `ID`, `email`, `firstName`, `lastName`, `phone` FROM `users` WHERE `email` = '" + friendEmail + "'";
 
-  db.query(friend, (error, results1) => {
-    if (error) {
-      response.status(400, { message: 'Ошибка', error }, res)
+  db.query(usersTable, (error, results1) => {
+    console.log(results1)
+    if (!results1.length) {
+      response.status(400, { error: `Пользователь ${friendEmail} не зарегистрирован`, error }, res)
     } else {
-      if (!results1.length) {
-        response.status(400, { message: 'Пользователь не зарегистрирован', error }, res)
-      } else {
-        const friend = "SELECT `email`, `Users_ID` FROM `friends` WHERE `email` = '" + friendEmail + "'";
-        db.query(friend, (error, results) => {
-          if (!results.length) {
-            const friendEmail = req.body.email;
-            const friendFirstName = results1[0].firstName;
-            const friendLastName = results1[0].lastName;
-            const friendPhone = results1[0].phone;
-            const friendPassword = results1[0].password;
+      const friend = "SELECT `ID`, `Users_ID`, `secondPersonID` FROM `friends` WHERE (`Users_ID` = '" +
+        currentUserId + "' AND `secondPersonID` = '" + results1[0].ID + "') OR (`Users_ID` = '" + results1[0].ID + "' AND `secondPersonID` = '" + currentUserId + "')";
 
-            const sql = "INSERT INTO `friends`(`email`, `firstName`, `lastName`, `phone`, `password`, `Users_ID`) VALUES('" +
-              friendEmail + "', '" +
-              friendFirstName + "', '" +
-              friendLastName + "', '" +
-              friendPhone + "', '" +
-              friendPassword + "' , '" +
-              currentUserId + "')";
+      db.query(friend, (error, results) => {
+        console.log(results)
+        if (!results.length) {
+          const friendId = results1.map(el => el.ID)
+          const sql = "INSERT INTO `friends`(`Users_ID`, `secondPersonID`) VALUES('" + currentUserId + "', '" + friendId + "')";
 
-            db.query(sql, (error, results) => {
-              if (error) {
-                response.status(400, error, res)
-              } else {
-                response.status(200, { message: 'Пользователь успешно добавлен в список контактов', results }, res)
-              }
-            })
-          } else {
-            let isAble = true;
-
-            for (let i = 0; i < results.length; i++) {
-              if (results[i].Users_ID === currentUserId) {
-                isAble = false;
-                break;
-              }
-            }
-
-            if (isAble) {
-              const friendEmail = req.body.email;
-              const friendFirstName = req.body.firstName;
-              const friendLastName = req.body.lastName;
-              const friendPhone = req.body.phone;
-              const friendPassword = req.body.password;
-
-              const sql = "INSERT INTO `friends`(`email`, `firstName`, `lastName`, `phone`, `password`, `Users_ID`) VALUES('" +
-                friendEmail + "', '" +
-                friendFirstName + "', '" +
-                friendLastName + "', '" +
-                friendPhone + "', '" +
-                friendPassword + "' , '" +
-                currentUserId + "')";
-
-              db.query(sql, (error, results) => {
-                if (error) {
-                  response.status(400, error, res)
-                } else {
-                  response.status(200, { message: 'Пользователь успешно добавлен в список контактов', results }, res)
-                }
-              })
+          db.query(sql, (error, results) => {
+            if (error) {
+              response.status(400, error, res);
             } else {
-              response.status(400, { message: 'Пользователь уже у вас в друзьях!', error }, res)
-            };
-          };
-        });
-      };
+              response.status(200, { success: `Пользователь ${friendEmail} успешно добавлен в список контактов`, results }, res);
+            }
+          })
+        } else {
+          response.status(400, { error: `Пользователь ${friendEmail} уже существует в списке контактов!`, results }, res);
+        }
+      });
     };
   });
 };

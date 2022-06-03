@@ -7,19 +7,6 @@ const response = require("./../response");
 const db = require("./../settings/db");
 const config = require('./../config');
 
-exports.getAllUsers = (req, res) => {
-  db.query(
-    "SELECT `ID`, `email`, `firstName`, `lastName`, `phone`, `password` FROM `users` ", //выборка из таблицы users
-    (error, results, rows) => {
-      if (error) {
-        response.status(400, error, res);
-      } else {
-        response.status(200, rows, res);
-      }
-    }
-  );
-};
-
 exports.signUp = (req, res) => {
   const userEmail = req.body.email;
 
@@ -29,8 +16,8 @@ exports.signUp = (req, res) => {
         response.status(400, error, res)
       } else if (typeof rows !== 'undefined' && rows.length > 0) {
         const row = JSON.parse(JSON.stringify(rows));
-        row.map(rw => {
-          response.status(302, { error: `Пользователь с таким email - ${userEmail} уже зарегистрирован` }, res)
+        row.map(() => {
+          response.status(302, { error: `Пользователь с таким email ${userEmail} уже существует` }, res)
           return true;
         })
       } else {
@@ -103,7 +90,7 @@ exports.signIn = (req, res) => {
             response.status(200, { token: `Bearer ${token}`, user: { id, email, firstName, lastName, phone } }, res);
           } else {
             //Выкидываем ошибку что пароль неверный
-            response.status(401, { message: `Неверный пароль для email - ${email}. Повторите попытку снова!` }, res);
+            response.status(401, { error: `Неверный пароль для ${email}. Повторите попытку снова!` }, res);
           }
 
           return true;
